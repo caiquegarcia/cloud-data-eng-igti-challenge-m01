@@ -1,0 +1,39 @@
+name: deploy-igti-challenge-mod-01-iac
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  datalake-iac-deploy:
+    name: datalake-iac-deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: setup-python-3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: setup-hashicorp-terraform
+        uses: hashicorp/setup-terraform@1.2.1
+
+      - name: configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials
+        with:
+          aws-access-key-id: ""
+          aws-secret-access-key: ""
+          aws-region: ca-central-1
+
+      - name: apply-challenge-iac
+        env:
+          TERRAFORM_COMMAND: terraform
+        run: |
+          cd iac
+          $TERRAFORM_COMMAND init
+          $TERRAFORM_COMMAND validate
+          $TERRAFORM_COMMAND plan
+          $TERRAFORM_COMMAND apply -auto-approve
+
