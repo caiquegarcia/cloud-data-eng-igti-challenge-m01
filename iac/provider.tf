@@ -1,5 +1,12 @@
 provider "aws" {
   region     = "ca-central-1"
-  access_key = "AKIAVXAV74VIOQ4DUK3G"                     #"${{secrets.AWS_ACCESS_KEY}}"
-  secret_key = "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" #"${{secrets.AWS_SECRET_KEY}}"
+}
+
+# Share Terraform State file
+terraform {
+  backend "s3" {
+    bucket = "terraform-state-backend-igti-challenge"
+    key = "terraform-state/shared-terraform-state.tfstate"
+    region = "ca-central-1"
+  }
 }
