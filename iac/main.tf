@@ -100,23 +100,23 @@ resource "aws_iam_role_policy_attachment" "crawler-with-read-write-delete-datala
 # Creating Glue Catalog Database to Datalake Bronze Layer 
 resource "aws_glue_catalog_database" "glue-catalog-db-datalake-bronze-layer" {
   name = "glue-catalog-db-datalake-bronze-layer"
-}
+} # Table bronze-table will be created after crawler run
 
 # Creating Glue Catalog Database to Datalake Silver Layer 
 resource "aws_glue_catalog_database" "glue-catalog-db-datalake-silver-layer" {
   name = "glue-catalog-db-datalake-silver-layer"
-}
+} # Table silver-table will be created after crawler run
 
 # Creating Glue Catalog Database to Datalake Gold Layer
 resource "aws_glue_catalog_database" "glue-catalog-db-datalake-gold-layer" {
   name = "glue-catalog-db-datalake-gold-layer"
-}
+} # Table gold-table will be created after crawler run
 
 ############################################################################
 ############################### GLUE CRAWLERS ##############################
 ############################################################################
 
-# Creating Glue Crawler: Silver Layer Crawler
+# Creating Glue Crawler: Bronze Layer Crawler
 resource "aws_glue_crawler" "datalake-bronze-layer-crawler" {
 
 	name = "datalake-bronze-layer-crawler"
@@ -126,7 +126,8 @@ resource "aws_glue_crawler" "datalake-bronze-layer-crawler" {
 	s3_target {
 		path = aws_s3_object.datalake-bronze-layer.id
 	}
-}
+} # Crawler run into datalake bronze-layer files
+# and create bronze-table of glue-catalog-db-datalake-bronze-layer
 
 # Creating Glue Crawler: Silver Layer Crawler
 resource "aws_glue_crawler" "datalake-silver-layer-crawler" {
@@ -138,7 +139,8 @@ resource "aws_glue_crawler" "datalake-silver-layer-crawler" {
 	s3_target {
 		path = aws_s3_object.datalake-silver-layer.id
 	}
-}
+} # Crawler run into datalake silver-layer files
+# and create silver-table of glue-catalog-db-datalake-silver-layer
 
 # Creating Glue Crawler: Gold Layer Crawler
 resource "aws_glue_crawler" "datalake-gold-layer-crawler" {
@@ -149,7 +151,43 @@ resource "aws_glue_crawler" "datalake-gold-layer-crawler" {
 	s3_target {
 		path = aws_s3_object.datalake-gold-layer.id
 	}
+} # Crawler run into datalake gold-layer files
+# and create gold-table of glue-catalog-db-datalake-gold-layer
+
+############################################################################
+################################# GLUE JOBS ################################
+############################################################################
+
+# ETL: Bronze Layer to Silver Layer
+# Convert csv files from bronze-layers to parquet files into silver-layer
+# Treat  some data 
+# Correct some data types
+resource "aws_glue_job" "etl-igti-challenge-bronze-layer-to-silver-layer" {
+  name     = "etl-igti-challenge-bronze-layer-to-silver-layer"
+  role_arn = aws_iam_role.glue-crawler-datalake-role.arn
+  worker_type = "G.1X"
+  number_of_workers = 10
+  max_retries = 0
+
+  command {
+    script_location = "s3://${aws_s3_bucket.example.bucket}/example.py"
+  }
 }
+
+# ETL: Silver Layer to Bronze Layer
+# Select usable columns
+resource "aws_glue_job" "etl-igti-challenge-silver-layer-to-gold-layer" {
+  name     = "etl-igti-challenge-silver-layer-to-gold-layer"
+  role_arn = aws_iam_role.glue-crawler-datalake-role.arn
+  worker_type = "G.1X"
+  number_of_workers = 10
+  max_retries = 0
+
+  command {
+    script_location = "s3://${aws_s3_bucket.example.bucket}/example.py"
+  }
+}
+
 
 ############################################################################
 ############################################################################
