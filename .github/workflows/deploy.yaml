@@ -18,7 +18,7 @@ jobs:
         python-version: 3.8
 
     - name: setup-hashicorp-terraform
-      uses: hashicorp/setup-terraform@1.2.1
+      uses: hashicorp/setup-terraform@v1.2.1
 
     - name: configure-aws-credentials
       uses: aws-actions/configure-aws-credentials
