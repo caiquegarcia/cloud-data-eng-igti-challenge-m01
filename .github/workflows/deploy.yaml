@@ -10,30 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: setup-python-3
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
+    - name: setup-python-3
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
 
-      - name: setup-hashicorp-terraform
-        uses: hashicorp/setup-terraform@1.2.1
+    - name: setup-hashicorp-terraform
+      uses: hashicorp/setup-terraform@1.2.1
 
-      - name: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: ca-central-1
+    - name: configure-aws-credentials
+      uses: aws-actions/configure-aws-credentials
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-region: ca-central-1
 
-      - name: apply-challenge-iac
-        env:
-          TERRAFORM_COMMAND: terraform
-        run: |
-          cd iac
-          $TERRAFORM_COMMAND init
-          $TERRAFORM_COMMAND validate
-          $TERRAFORM_COMMAND plan
-          $TERRAFORM_COMMAND apply -auto-approve
+    - name: apply-challenge-iac
+      env:
+        TERRAFORM_COMMAND: terraform
+      run: |
+        cd iac
+        $TERRAFORM_COMMAND init
+        $TERRAFORM_COMMAND validate
+        $TERRAFORM_COMMAND plan
+        $TERRAFORM_COMMAND apply -auto-approve
 
