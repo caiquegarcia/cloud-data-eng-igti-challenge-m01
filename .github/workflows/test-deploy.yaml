@@ -1,4 +1,4 @@
-name: test-deploy-igti-challenge-mod-01-iac
+name: test-deploy-igti-challenge-module-01-iac
 
 on:
   pull_request:
