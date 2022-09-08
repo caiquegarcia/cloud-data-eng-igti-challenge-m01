@@ -2,11 +2,11 @@ name: deploy-igti-challenge-mod-01-iac
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   datalake-iac-deploy:
-    name: datalake-iac-deploy
     runs-on: ubuntu-latest
 
     steps:

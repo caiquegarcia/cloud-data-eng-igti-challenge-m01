@@ -2,11 +2,11 @@ name: test-deploy-igti-challenge-module-01-iac
 
 on:
   pull_request:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   test-datalake-iac-deploy:
-    name: test-datalake-iac-deploy
     runs-on: ubuntu-latest
 
     steps:
