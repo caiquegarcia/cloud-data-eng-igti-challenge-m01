@@ -24,7 +24,6 @@ resource "aws_s3_object" "datalake-silver-layer" {
   bucket = aws_s3_bucket.datalake-desafio.id
   key    = "silver-layer/"
   acl    = "private"
-
 }
 
 # Criando nossa gold-layer
@@ -33,7 +32,6 @@ resource "aws_s3_object" "datalake-gold-layer" {
   bucket = aws_s3_bucket.datalake-desafio.id
   key    = "golden-layer/"
   acl    = "private"
-
 }
 
 ############################################################################
@@ -66,9 +64,9 @@ resource "aws_iam_role_policy_attachment" "crawler-with-glue-service-role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
-# Creating Policy to read and write Silver Layer on Datalake
-resource "aws_iam_policy" "read-write-datalake-silver-layer" {
-  name = "read-write-datalake-silver-layer"
+# Creating Policy to read and write and delete objects from Datalake
+resource "aws_iam_policy" "read-write-delete-datalake" {
+  name = "read-write-delete-datalake"
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
@@ -77,10 +75,11 @@ resource "aws_iam_policy" "read-write-datalake-silver-layer" {
           "Effect" : "Allow",
           "Action" : [
             "s3:GetObject",
-            "s3:PutObject"
+            "s3:PutObject",
+            "s3:DeleteObject"
           ],
           "Resource" : [
-            "arn:aws:s3:::igti-bootcamp-desafio-desafio/silver-layer*"
+            aws_s3_bucket.datalake-desafio.arn //"arn:aws:s3:::datalake-desafio-igti-caique-garcia-development/*",
           ]
         }
       ]
@@ -88,43 +87,20 @@ resource "aws_iam_policy" "read-write-datalake-silver-layer" {
   )
 }
 
-# Attaching read and write Customer Managed Policy with our role
-resource "aws_iam_role_policy_attachment" "crawler-with-read-write-datalake-silver-layer" {
+# Attaching read, write and delete Customer Managed Policy with our role
+resource "aws_iam_role_policy_attachment" "crawler-with-read-write-delete-datalake" {
   role       = aws_iam_role.glue-crawler-datalake-role.id
-  policy_arn = aws_iam_policy.read-write-datalake-silver-layer.arn
-}
-
-# Creating Policy to read and write Gold Layer on Datalake
-resource "aws_iam_policy" "read-write-datalake-gold-layer" {
-  name = "read-write-datalake-gold-layer"
-  policy = jsonencode(
-    {
-      "Version" : "2012-10-17",
-      "Statement" : [
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "s3:GetObject",
-            "s3:PutObject"
-          ],
-          "Resource" : [
-            "arn:aws:s3:::igti-bootcamp-desafio-desafio/gold-layer*"
-          ]
-        }
-      ]
-    }
-  )
-}
-
-# Attaching read and write Customer Managed Policy with our role
-resource "aws_iam_role_policy_attachment" "crawler-with-read-write-datalake-gold-layer" {
-  role       = aws_iam_role.glue-crawler-datalake-role.id
-  policy_arn = aws_iam_policy.read-write-datalake-gold-layer.arn
+  policy_arn = aws_iam_policy.read-write-delete-datalake.arn
 }
 
 ############################################################################
 ########################### GLUE CATALOG DATABASE ##########################
 ############################################################################
+
+# Creating Glue Catalog Database to Datalake Bronze Layer 
+resource "aws_glue_catalog_database" "glue-catalog-db-datalake-bronze-layer" {
+  name = "glue-catalog-db-datalake-bronze-layer"
+}
 
 # Creating Glue Catalog Database to Datalake Silver Layer 
 resource "aws_glue_catalog_database" "glue-catalog-db-datalake-silver-layer" {
@@ -139,6 +115,18 @@ resource "aws_glue_catalog_database" "glue-catalog-db-datalake-gold-layer" {
 ############################################################################
 ############################### GLUE CRAWLERS ##############################
 ############################################################################
+
+# Creating Glue Crawler: Silver Layer Crawler
+resource "aws_glue_crawler" "datalake-bronze-layer-crawler" {
+
+	name = "datalake-bronze-layer-crawler"
+	database_name = aws_glue_catalog_database.glue-catalog-db-datalake-bronze-layer.name
+	role = aws_iam_role.glue-crawler-datalake-role.arn
+	
+	s3_target {
+		path = aws_s3_object.datalake-bronze-layer.id
+	}
+}
 
 # Creating Glue Crawler: Silver Layer Crawler
 resource "aws_glue_crawler" "datalake-silver-layer-crawler" {
