@@ -18,10 +18,10 @@ jobs:
           python-version: 3.8
 
       - name: setup-hashicorp-terraform
-        uses: hashicorp/setup-terraform@1.2.1
+        uses: hashicorp/setup-terraform@v1.2.1
 
       - name: configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
