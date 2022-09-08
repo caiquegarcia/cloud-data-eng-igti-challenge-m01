@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+
+    - name: checking-master
+      uses: actions/checkout@v2
 
     - name: setup-python-3
       uses: actions/setup-python@v2
