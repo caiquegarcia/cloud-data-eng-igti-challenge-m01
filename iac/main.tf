@@ -2,6 +2,21 @@
 ############################ BUCKETS AND LAYERS ############################
 ############################################################################
 
+# Creating a S3 Bucket to store our scripts
+resource "aws_s3_bucket" "scripts-storage-bucket" {
+
+  bucket = "igit-challenge-scripts-storage-bucket"
+  acl    = "private"
+
+}
+
+# Creating Glue Jobs Scripts
+resource "aws_s3_object" "glue-jobs-scripts-storage" {
+  bucket = aws_s3_bucket.scripts-storage-bucket.id
+  key    = "scripts/glue-jobs"
+  acl    = "private"
+}
+
 # Creating our Datalake as S3 Bucket
 resource "aws_s3_bucket" "datalake-desafio" {
 
@@ -155,6 +170,26 @@ resource "aws_glue_crawler" "datalake-gold-layer-crawler" {
 # and create gold-table of glue-catalog-db-datalake-gold-layer
 
 ############################################################################
+############################ UPLOAD OF SCRIPTS #############################
+############################################################################
+
+# Upload ETL Scripts: Bronze to Silver
+resource "aws_s3_object" "upload-etl-script-bronze-to-silver" {
+  bucket = aws_s3_bucket.scripts-storage-bucket.id
+  key    = "scripts/glue-jobs/${var.etl-script-bronze-to-silver}"
+  acl    = "private"
+  source = "../etl-scripts/glue-bronze-to-silver.py"
+}
+
+# Upload ETL Scripts: Silver to Gold
+resource "aws_s3_object" "upload-etl-script-silver-to-gold" {
+  bucket = aws_s3_bucket.scripts-storage-bucket.id
+  key    = "scripts/glue-jobs/${var.etl-script-silver-to-gold}"
+  acl    = "private"
+  source = "../etl-scripts/glue-silver-to-gold.py"
+}
+
+############################################################################
 ################################# GLUE JOBS ################################
 ############################################################################
 
@@ -170,7 +205,7 @@ resource "aws_glue_job" "etl-igti-challenge-bronze-layer-to-silver-layer" {
   max_retries = 0
 
   command {
-    script_location = "s3://${aws_s3_bucket.example.bucket}/example.py"
+    script_location = "s3://${aws_s3_bucket.scripts-storage-bucket.bucket}/${var.etl-script-bronze-to-silver}"
   }
 }
 
@@ -184,11 +219,9 @@ resource "aws_glue_job" "etl-igti-challenge-silver-layer-to-gold-layer" {
   max_retries = 0
 
   command {
-    script_location = "s3://${aws_s3_bucket.example.bucket}/example.py"
+    script_location = "s3://${aws_s3_bucket.scripts-storage-bucket.bucket}/${var.etl-script-silver-to-gold}"
   }
 }
-
-
 ############################################################################
 ############################################################################
 ############################################################################
